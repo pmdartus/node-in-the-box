@@ -18,6 +18,7 @@ const schema = makeExecutableSchema({
 app.use('/graphql', bodyParser.json(), apolloExpress({ schema }));
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
+/* eslint no-console: 0 */
 initRunner()
   .then(() => app.listen(PORT, () => console.log(`Ready on port ${PORT}`)))
   .catch(err => console.error(err));

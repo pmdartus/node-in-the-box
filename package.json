@@ -1,13 +1,14 @@
 {
-  "name": "node-sandbox",
+  "name": "node-in-the-box",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-server": "node server",
+    "start": "npm run start-server"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Pierre-Marie Dartus <dartus.pierremarie@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "apollo-server": "^0.3.2",
     "body-parser": "^1.15.2",
