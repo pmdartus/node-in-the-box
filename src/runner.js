@@ -7,7 +7,7 @@ const uuid = require('node-uuid');
 
 const CERT_DIR = process.env.DOCKER_CERT_PATH;
 const CODE_FOLDER = 'user-code';
-const TMP_FOLDER = '/tmp';
+const TMP_FOLDER = path.resolve(__dirname, '../sandboxes');
 
 const docker = new Docker({
   protocol: 'https',
