@@ -1,5 +1,3 @@
-'use strict';
-
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -7,7 +5,9 @@ const {
   initRunner,
   newRunner,
   getRunner,
-} = require('./runner'); 
+} = require('./runner');
+
+const PORT = 3000 || process.env.PORT;
 
 const app = express();
 app.use(bodyParser.json());
@@ -24,7 +24,7 @@ app.get('/run/:id', ({ params }, res) => {
 
   return runner.status()
     .then(info => res.send(info))
-    .catch(err => res.status(500).send(err))
+    .catch(err => res.status(500).send(err));
 });
 
 app.post('/run', ({ body }, res) => {
@@ -33,14 +33,14 @@ app.post('/run', ({ body }, res) => {
   }
 
   const userCode = body.content;
-  newRunner(userCode)
-    .then(runner => {
+  return newRunner(userCode)
+    .then((runner) => {
       runner.run();
       return res.send({ id: runner.id });
     })
-    .catch(err => res.status(500).send(err))
+    .catch(err => res.status(500).send(err));
 });
 
 initRunner()
-  .then(() => app.listen(3000, () => console.log(`Ready on port 3000`)))
+  .then(() => app.listen(PORT, () => console.log(`Ready on port ${PORT}`)))
   .catch(err => console.error(err));

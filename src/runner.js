@@ -1,5 +1,3 @@
-'use strict';
-
 const Docker = require('dockerode');
 const fs = require('fs');
 const path = require('path');
@@ -14,9 +12,9 @@ const docker = new Docker({
   host: '192.168.99.100',
   port: 2376,
   checkServerIdentity: false,
-  ca: fs.readFileSync(CERT_DIR + '/ca.pem'),
-  cert: fs.readFileSync(CERT_DIR + '/cert.pem'),
-  key: fs.readFileSync(CERT_DIR + '/key.pem')
+  ca: fs.readFileSync(`${CERT_DIR}/ca.pem`),
+  cert: fs.readFileSync(`${CERT_DIR}/cert.pem`),
+  key: fs.readFileSync(`${CERT_DIR}/key.pem`),
 });
 
 const runners = [];
@@ -29,21 +27,21 @@ function createTmpFolder(userCode, id) {
   const folderPath = path.resolve(TMP_FOLDER, `sandbox-${id}`);
   const useCodePath = path.join(folderPath, 'index.js');
 
-  return new Promise((resolve, reject) => {
-    fs.mkdir(folderPath, err => {
-      if (err) {
-        return reject(err);
+  return new Promise((resolve, reject) =>
+    fs.mkdir(folderPath, (dirErr) => {
+      if (dirErr) {
+        return reject(dirErr);
       }
 
-      fs.writeFile(useCodePath, userCode, (err) => {
-        if (err) {
-           return reject(err);
+      return fs.writeFile(useCodePath, userCode, (fileErr) => {
+        if (fileErr) {
+          return reject(fileErr);
         }
 
-        resolve(folderPath);
+        return resolve(folderPath);
       });
     })
-  });
+  );
 }
 
 function createContainer(tmpFolder, id) {
@@ -52,16 +50,16 @@ function createContainer(tmpFolder, id) {
     Tty: true,
     WorkingDir: `/${CODE_FOLDER}`,
     Cmd: [
-      'node', 'index.js'
+      'node', 'index.js',
     ],
     Labels: {
       'sandbox-id': id,
     },
     HostConfig: {
       Binds: [
-        `${tmpFolder}:/${CODE_FOLDER}`
-      ]
-    }
+        `${tmpFolder}:/${CODE_FOLDER}`,
+      ],
+    },
   };
 
   return new Promise((resolve, reject) => {
@@ -70,13 +68,13 @@ function createContainer(tmpFolder, id) {
         return reject(err);
       }
 
-      resolve(res);
+      return resolve(res);
     });
   });
 }
 
 function runContainer(container, outputStream) {
-  container.attach({stream: true, stdout: true, stderr: true}, function (err, stream) {
+  container.attach({ stream: true, stdout: true, stderr: true }, (err, stream) => {
     stream.pipe(outputStream);
   });
 
@@ -85,40 +83,40 @@ function runContainer(container, outputStream) {
       return reject(err);
     }
 
-    resolve(res);
+    return resolve(res);
   }));
 }
 
 function runnerStatus(runner) {
   const {
-    id, 
+    id,
     container,
   } = runner;
 
-  return new Promise((resolve, reject) => {
-    return container.logs((err, res) => {
+  return new Promise((resolve, reject) =>
+    container.logs((err, res) => {
       if (err) {
         return reject(err);
       }
 
       return resolve({
-        id: runner.id,
-        logs: res
-      })
-    });
-  })
+        id,
+        logs: res,
+      });
+    })
+  );
 }
 
 function initRunner() {
-  return new Promise((resolve, reject) => {
-    return docker.ping((err, res) => {
+  return new Promise((resolve, reject) =>
+    docker.ping((err, res) => {
       if (err) {
-        return reject(err)
+        return reject(err);
       }
 
-      resolve(res);
-    });
-  });
+      return resolve(res);
+    })
+  );
 }
 
 function newRunner(userCode) {
@@ -126,11 +124,11 @@ function newRunner(userCode) {
   let codePath = null;
 
   return createTmpFolder(userCode, runnerId)
-    .then(tmpFolder => {
-      codePath = tmpFolder
+    .then((tmpFolder) => {
+      codePath = tmpFolder;
       return createContainer(tmpFolder, runnerId);
     })
-    .then(container => {
+    .then((container) => {
       const runner = {
         id: runnerId,
         codePath,
@@ -140,7 +138,7 @@ function newRunner(userCode) {
       };
       runners.push(runner);
 
-      return runner; 
+      return runner;
     });
 }
 
@@ -158,5 +156,4 @@ module.exports = {
   initRunner,
   newRunner,
   getRunner,
-}
-
+};
