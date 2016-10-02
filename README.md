@@ -1,3 +1,3 @@
-# Node in a box
+# Node in the box
 
-![Node in a box](http://i.giphy.com/3ornjOdkqyUZY3luSI.gif)
+![Node in the box](http://i.giphy.com/3ornjOdkqyUZY3luSI.gif)
