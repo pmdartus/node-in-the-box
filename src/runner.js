@@ -144,13 +144,13 @@ function newRunner(userCode) {
     });
 }
 
-function getRunner(id) {
-  if (!id) {
+function getRunner(runnerId) {
+  if (!runnerId) {
     return null;
   }
 
   return runners
-    .filter(({runnerId: id}) => runnerId === id)
+    .filter(runner => runnerId === runner.id)
     .pop();
 }
 

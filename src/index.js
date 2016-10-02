@@ -19,10 +19,10 @@ app.get('/run/:id', ({ params }, res) => {
 
   const runner = getRunner(params.id);
   if (!runner) {
-    return res.status(404);
+    return res.sendStatus(404);
   }
 
-  return runner.info()
+  return runner.status()
     .then(info => res.send(info))
     .catch(err => res.status(500).send(err))
 });
@@ -36,7 +36,7 @@ app.post('/run', ({ body }, res) => {
   newRunner(userCode)
     .then(runner => {
       runner.run();
-      return res.send({ id });
+      return res.send({ id: runner.id });
     })
     .catch(err => res.status(500).send(err))
 });
