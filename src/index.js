@@ -17,14 +17,15 @@ app.get('/run/:id', ({ params }, res) => {
     return res.satuts(400).send('Expect an id params');
   }
 
-  const runner = getRunner(params.id);
-  if (!runner) {
-    return res.sendStatus(404);
-  }
+  return getRunner(params.id).then((runner) => {
+    if (!runner) {
+      return res.sendStatus(404);
+    }
 
-  return runner.status()
-    .then(info => res.send(info))
-    .catch(err => res.status(500).send(err));
+    return runner.info()
+      .then(info => res.send(info))
+      .catch(err => res.status(500).send(err));
+  });
 });
 
 app.post('/run', ({ body }, res) => {

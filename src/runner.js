@@ -2,6 +2,9 @@ const Docker = require('dockerode');
 const fs = require('fs');
 const path = require('path');
 const uuid = require('node-uuid');
+const {
+  PassThrough,
+} = require('stream');
 
 const CERT_DIR = process.env.DOCKER_CERT_PATH;
 const CODE_FOLDER = 'user-code';
@@ -16,8 +19,6 @@ const docker = new Docker({
   cert: fs.readFileSync(`${CERT_DIR}/cert.pem`),
   key: fs.readFileSync(`${CERT_DIR}/key.pem`),
 });
-
-const runners = [];
 
 function randomId() {
   return uuid.v4();
@@ -53,7 +54,8 @@ function createContainer(tmpFolder, id) {
       'node', 'index.js',
     ],
     Labels: {
-      'sandbox-id': id,
+      'run-id': id,
+      'code-path': tmpFolder,
     },
     HostConfig: {
       Binds: [
@@ -73,7 +75,7 @@ function createContainer(tmpFolder, id) {
   });
 }
 
-function runContainer(container, outputStream) {
+function runnerStart({ container }, outputStream) {
   container.attach({ stream: true, stdout: true, stderr: true }, (err, stream) => {
     stream.pipe(outputStream);
   });
@@ -87,22 +89,32 @@ function runContainer(container, outputStream) {
   }));
 }
 
-function runnerStatus(runner) {
+function runnerInfo(runner) {
   const {
     id,
     container,
   } = runner;
 
   return new Promise((resolve, reject) =>
-    container.logs((err, res) => {
+    container.logs({
+      stdout: true,
+      stderr: true,
+      follow: true,
+      timestamps: true,
+    }, (err, stream) => {
       if (err) {
         return reject(err);
       }
 
-      return resolve({
-        id,
-        logs: res,
-      });
+      let logs = '';
+      stream.on('data', data => (logs += data.toString()));
+      return stream.on('end', () =>
+        resolve({
+          id,
+          logs: logs.split('\r\n')
+            .filter(line => line && line.length),
+        })
+      );
     })
   );
 }
@@ -119,37 +131,47 @@ function initRunner() {
   );
 }
 
-function newRunner(userCode) {
-  const runnerId = randomId();
-  let codePath = null;
-
-  return createTmpFolder(userCode, runnerId)
-    .then((tmpFolder) => {
-      codePath = tmpFolder;
-      return createContainer(tmpFolder, runnerId);
-    })
-    .then((container) => {
-      const runner = {
-        id: runnerId,
-        codePath,
-        container,
-        run: () => runContainer(container, process.stdout),
-        status: () => runnerStatus(runner),
-      };
-      runners.push(runner);
-
-      return runner;
-    });
-}
-
 function getRunner(runnerId) {
   if (!runnerId) {
     return null;
   }
 
-  return runners
-    .filter(runner => runnerId === runner.id)
-    .pop();
+  return new Promise((resolve, reject) =>
+    docker.listContainers({
+      all: true,
+    }, (err, res) => {
+      if (err) {
+        return reject(err);
+      }
+
+      const matchingContainer = res
+        .filter(({ Labels }) => Labels['run-id'] && Labels['run-id'] === runnerId)
+        .pop();
+
+      if (!matchingContainer) {
+        return resolve(matchingContainer);
+      }
+
+      const container = docker.getContainer(matchingContainer.Id);
+      const runner = {
+        id: runnerId,
+        codePath: matchingContainer.Labels['code-path'],
+        container,
+        run: () => runnerStart(runner, process.stdout),
+        info: () => runnerInfo(runner),
+      };
+
+      return resolve(runner);
+    })
+  );
+}
+
+function newRunner(userCode) {
+  const runnerId = randomId();
+
+  return createTmpFolder(userCode, runnerId)
+    .then(tmpFolder => createContainer(tmpFolder, runnerId))
+    .then(() => getRunner(runnerId));
 }
 
 module.exports = {
