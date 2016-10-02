@@ -17,6 +17,7 @@ const schema = makeExecutableSchema({
 
 app.use('/graphql', bodyParser.json(), apolloExpress({ schema }));
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
+app.use(express.static('public'));
 
 /* eslint no-console: 0 */
 initRunner()

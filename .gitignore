@@ -1,4 +1,6 @@
 node_modules
 .DS_Store
-sandboxes
 npm-debug.log
+
+sandboxes
+public/js

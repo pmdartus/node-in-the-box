@@ -2,10 +2,11 @@
   "name": "node-in-the-box",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server/index.js",
   "scripts": {
-    "start-server": "node server",
-    "start": "npm run start-server"
+    "client-prod": "rollup --config scripts/rollup.prod.js",
+    "client-dev": "rollup --config scripts/rollup.dev.js --watch",
+    "start": "npm run client-prod && node server"
   },
   "author": "Pierre-Marie Dartus <dartus.pierremarie@gmail.com>",
   "license": "MIT",
@@ -16,11 +17,24 @@
     "express": "^4.14.0",
     "graphql": "^0.7.1",
     "graphql-tools": "^0.7.2",
-    "node-uuid": "^1.4.7"
+    "node-uuid": "^1.4.7",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
   },
   "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-preset-react": "^6.16.0",
     "eslint": "^3.7.0",
+    "eslint-config-airbnb": "^12.0.0",
     "eslint-config-airbnb-base": "^8.0.0",
-    "eslint-plugin-import": "^1.16.0"
+    "eslint-plugin-import": "^1.16.0",
+    "eslint-plugin-jsx-a11y": "^2.2.2",
+    "eslint-plugin-react": "^6.3.0",
+    "rollup": "^0.36.1",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-commonjs": "^5.0.4",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-watch": "^2.5.0"
   }
 }
