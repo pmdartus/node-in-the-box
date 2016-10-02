@@ -1,7 +1,21 @@
 module.exports = `
-type Run {
-  id: String!
+enum RunStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+type Script {
+  id: ID!
   content: String!
+  runs: [LogEntry]
+}
+
+type Run {
+  id: ID!
+  script: Script!
+  status: RunStatus!
   logs: [LogEntry]
 }
 
@@ -11,13 +25,14 @@ type LogEntry {
 }
 
 type Query {
+  script(id: String!): Script
   run(id: String!): Run
 }
 
 type Mutation {
-  postRun(
+  postScript(
     content: String!
-  ): Run
+  ): Script
 }
 
 schema {

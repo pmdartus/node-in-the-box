@@ -4,3 +4,4 @@ npm-debug.log
 
 sandboxes
 public/js
+**/*.sqlite3
