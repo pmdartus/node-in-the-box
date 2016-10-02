@@ -1,46 +1,22 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const { makeExecutableSchema } = require('graphql-tools');
+const { apolloExpress, graphiqlExpress } = require('apollo-server');
 
-const {
-  initRunner,
-  newRunner,
-  getRunner,
-} = require('./runner');
+const { initRunner } = require('./runner');
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
 
 const PORT = 3000 || process.env.PORT;
-
 const app = express();
-app.use(bodyParser.json());
 
-app.get('/run/:id', ({ params }, res) => {
-  if (!params.id || typeof params.id !== 'string') {
-    return res.satuts(400).send('Expect an id params');
-  }
-
-  return getRunner(params.id).then((runner) => {
-    if (!runner) {
-      return res.sendStatus(404);
-    }
-
-    return runner.info()
-      .then(info => res.send(info))
-      .catch(err => res.status(500).send(err));
-  });
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
 });
 
-app.post('/run', ({ body }, res) => {
-  if (!body.content || typeof body.content !== 'string') {
-    return res.status(400).send('Expect content key in payload');
-  }
-
-  const userCode = body.content;
-  return newRunner(userCode)
-    .then((runner) => {
-      runner.run();
-      return res.send({ id: runner.id });
-    })
-    .catch(err => res.status(500).send(err));
-});
+app.use('/graphql', bodyParser.json(), apolloExpress({ schema }));
+app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 initRunner()
   .then(() => app.listen(PORT, () => console.log(`Ready on port ${PORT}`)))

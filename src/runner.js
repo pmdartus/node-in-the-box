@@ -2,9 +2,6 @@ const Docker = require('dockerode');
 const fs = require('fs');
 const path = require('path');
 const uuid = require('node-uuid');
-const {
-  PassThrough,
-} = require('stream');
 
 const CERT_DIR = process.env.DOCKER_CERT_PATH;
 const CODE_FOLDER = 'user-code';
@@ -89,11 +86,17 @@ function runnerStart({ container }, outputStream) {
   }));
 }
 
-function runnerInfo(runner) {
-  const {
-    id,
-    container,
-  } = runner;
+function getRunnerLogs({ container }) {
+  const formatLogs = logs => logs
+    .split('\r\n')
+    .filter(line => line && line.length)
+    .map((entry) => {
+      const firstWhiteSpace = entry.indexOf(' ');
+      return {
+        ts: entry.substring(0, firstWhiteSpace),
+        msg: entry.substring(firstWhiteSpace),
+      };
+    });
 
   return new Promise((resolve, reject) =>
     container.logs({
@@ -108,13 +111,10 @@ function runnerInfo(runner) {
 
       let logs = '';
       stream.on('data', data => (logs += data.toString()));
-      return stream.on('end', () =>
-        resolve({
-          id,
-          logs: logs.split('\r\n')
-            .filter(line => line && line.length),
-        })
-      );
+      return stream.on('end', () => {
+        const formattedLogs = formatLogs(logs);
+        resolve(formattedLogs);
+      });
     })
   );
 }
@@ -122,6 +122,20 @@ function runnerInfo(runner) {
 function initRunner() {
   return new Promise((resolve, reject) =>
     docker.ping((err, res) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(res);
+    })
+  );
+}
+
+function getRunnerContent({ codePath }) {
+  const contentPath = path.resolve(codePath, 'index.js');
+
+  return new Promise((resolve, reject) =>
+    fs.readFile(contentPath, (err, res) => {
       if (err) {
         return reject(err);
       }
@@ -157,8 +171,9 @@ function getRunner(runnerId) {
         id: runnerId,
         codePath: matchingContainer.Labels['code-path'],
         container,
+        getContent: () => getRunnerContent(runner),
         run: () => runnerStart(runner, process.stdout),
-        info: () => runnerInfo(runner),
+        getLogs: () => getRunnerLogs(runner),
       };
 
       return resolve(runner);
