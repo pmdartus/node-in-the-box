@@ -1,7 +1,9 @@
 const Docker = require('dockerode');
-const fs = require('fs');
 const path = require('path');
+const promisify = require('promisify-node');
 const uuid = require('node-uuid');
+
+const fs = promisify('fs');
 
 const CERT_DIR = process.env.DOCKER_CERT_PATH;
 const CODE_FOLDER = 'user-code';
@@ -25,21 +27,8 @@ function createTmpFolder(userCode, id) {
   const folderPath = path.resolve(TMP_FOLDER, `sandbox-${id}`);
   const useCodePath = path.join(folderPath, 'index.js');
 
-  return new Promise((resolve, reject) =>
-    fs.mkdir(folderPath, (dirErr) => {
-      if (dirErr) {
-        return reject(dirErr);
-      }
-
-      return fs.writeFile(useCodePath, userCode, (fileErr) => {
-        if (fileErr) {
-          return reject(fileErr);
-        }
-
-        return resolve(folderPath);
-      });
-    })
-  );
+  return fs.mkdir(folderPath)
+    .then(() => fs.writeFile(useCodePath, userCode));
 }
 
 function createContainer(tmpFolder, id) {
@@ -86,7 +75,7 @@ function runnerStart({ container }, outputStream) {
   }));
 }
 
-function getRunnerLogs({ container }) {
+function getRunnerLogs(containerId) {
   const formatLogs = logs => logs
     .split('\r\n')
     .filter(line => line && line.length)
@@ -98,6 +87,7 @@ function getRunnerLogs({ container }) {
       };
     });
 
+  const container = docker.getContainer(containerId);
   return new Promise((resolve, reject) =>
     container.logs({
       stdout: true,
@@ -131,20 +121,6 @@ function initRunner() {
   );
 }
 
-function getRunnerContent({ codePath }) {
-  const contentPath = path.resolve(codePath, 'index.js');
-
-  return new Promise((resolve, reject) =>
-    fs.readFile(contentPath, (err, res) => {
-      if (err) {
-        return reject(err);
-      }
-
-      return resolve(res);
-    })
-  );
-}
-
 function getRunner(runnerId) {
   if (!runnerId) {
     return null;
@@ -169,11 +145,8 @@ function getRunner(runnerId) {
       const container = docker.getContainer(matchingContainer.Id);
       const runner = {
         id: runnerId,
-        codePath: matchingContainer.Labels['code-path'],
         container,
-        getContent: () => getRunnerContent(runner),
         run: () => runnerStart(runner, process.stdout),
-        getLogs: () => getRunnerLogs(runner),
       };
 
       return resolve(runner);
@@ -181,7 +154,7 @@ function getRunner(runnerId) {
   );
 }
 
-function newRunner(userCode) {
+function createRunner(userCode) {
   const runnerId = randomId();
 
   return createTmpFolder(userCode, runnerId)
@@ -191,6 +164,6 @@ function newRunner(userCode) {
 
 module.exports = {
   initRunner,
-  newRunner,
-  getRunner,
+  createRunner,
+  getRunnerLogs,
 };

@@ -9,6 +9,7 @@ enum RunStatus {
 type Script {
   id: ID!
   content: String!
+  createDate: String!
   runs: [Run]
 }
 
@@ -16,6 +17,7 @@ type Run {
   id: ID!
   script: Script!
   status: RunStatus!
+  duration: Int!
   logs: [LogEntry]
 }
 
@@ -25,14 +27,17 @@ type LogEntry {
 }
 
 type Query {
-  script(id: String!): Script
-  run(id: String!): Run
+  script(id: ID!): Script
 }
 
 type Mutation {
   postScript(
     content: String!
   ): Script
+
+  executeScript(
+    id: ID!
+  ): Run
 }
 
 schema {

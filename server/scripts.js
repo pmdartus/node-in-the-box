@@ -10,7 +10,10 @@ function insertScript(content) {
   return knex
     .transaction(trx => (
       trx.into('scripts')
-        .insert({ content })
+        .insert({
+          content,
+          created_at: new Date(),
+        })
     ))
     .then(([id]) => id);
 }
