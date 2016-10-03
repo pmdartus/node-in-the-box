@@ -1,24 +1,21 @@
 const {
-  getRunner,
-  newRunner,
-} = require('./runner');
+  insertScript,
+  scriptById,
+} = require('./scripts');
 
 module.exports = {
   Run: {
-    content: runner => runner.getContent(),
     logs: runner => runner.getLogs(),
   },
 
   Query: {
-    run: (_, { id }) => getRunner(id),
+    script: (_, { id }) => scriptById(id),
   },
 
   Mutation: {
-    postRun: (_, { content }) => (
-      newRunner(content).then((runner) => {
-        runner.run();
-        return runner;
-      })
+    postScript: (_, { content }) => (
+      insertScript(content)
+        .then(scriptById)
     ),
   },
 };

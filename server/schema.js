@@ -9,7 +9,7 @@ enum RunStatus {
 type Script {
   id: ID!
   content: String!
-  runs: [LogEntry]
+  runs: [Run]
 }
 
 type Run {
