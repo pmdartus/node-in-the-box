@@ -4,7 +4,8 @@
   "description": "",
   "main": "server/index.js",
   "scripts": {
-    "start": "npm run client-prod && node server",
+    "start": "node server",
+    "lint": "eslint .",
     "migrate": "knex migrate:latest --knexfile=./scripts/knexfile.js"
   },
   "author": "Pierre-Marie Dartus <dartus.pierremarie@gmail.com>",
@@ -19,24 +20,12 @@
     "knex": "^0.12.2",
     "node-uuid": "^1.4.7",
     "promisify-node": "^0.4.0",
-    "react": "^15.3.2",
-    "react-dom": "^15.3.2",
     "sqlite3": "^3.1.4"
   },
   "devDependencies": {
-    "babel-cli": "^6.16.0",
-    "babel-preset-react": "^6.16.0",
     "eslint": "^3.7.0",
     "eslint-config-airbnb": "^12.0.0",
     "eslint-config-airbnb-base": "^8.0.0",
-    "eslint-plugin-import": "^1.16.0",
-    "eslint-plugin-jsx-a11y": "^2.2.2",
-    "eslint-plugin-react": "^6.3.0",
-    "rollup": "^0.36.1",
-    "rollup-plugin-babel": "^2.6.1",
-    "rollup-plugin-commonjs": "^5.0.4",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "rollup-plugin-replace": "^1.1.1",
-    "rollup-watch": "^2.5.0"
+    "eslint-plugin-import": "^1.16.0"
   }
 }
