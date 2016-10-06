@@ -1,24 +1,18 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { makeExecutableSchema } = require('graphql-tools');
 const { apolloExpress, graphiqlExpress } = require('apollo-server');
 const { PubSub } = require('graphql-subscriptions');
 
+const { Scripts, Runs } = require('./models');
+const { schema } = require('./graphql');
+const SandboxManager = require('./sandbox-manager');
 const {
   port: PORT,
   dockerConfig,
   sandboxesFolder,
 } = require('./config');
-const typeDefs = require('./schema');
-const resolvers = require('./resolvers');
-const {
-  Scripts,
-  Runs,
-} = require('./models');
-const SandboxManager = require('./sandbox-manager');
 
 const app = express();
-const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const pubsub = new PubSub();
 const sandboxManager = new SandboxManager(dockerConfig, sandboxesFolder, pubsub);
