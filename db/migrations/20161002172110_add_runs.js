@@ -5,7 +5,7 @@ exports.up = function up(knex) {
     table.timestamps();
     table.string('status');
     table.integer('duration').unsigned();
-    table.string('container_id');
+    table.string('sandbox_id');
     table.integer('script_id').unsigned().references('id').inTable('scripts');
   });
 };

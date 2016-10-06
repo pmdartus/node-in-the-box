@@ -18,12 +18,7 @@ type Run {
   script: Script!
   status: RunStatus!
   duration: Int!
-  logs: [LogEntry]
-}
-
-type LogEntry {
-  ts: String!
-  msg: String!
+  logs: [String!]
 }
 
 type Query {
