@@ -17,7 +17,7 @@ const dockerConfig = {
 };
 
 module.exports = {
-  port: 3000 || process.env.PORT,
+  port: process.env.PORT || 3000,
   sandboxesFolder: process.env.SANBOXES_FOLDER || path.resolve(__dirname, '../sandboxes'),
   dockerConfig,
 };
