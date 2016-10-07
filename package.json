@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server",
     "test": "npm run lint",
-    "lint": "eslint .",
+    "lint": "eslint server/",
     "migrate": "knex migrate:latest --knexfile=./db/knexfile.js"
   },
   "author": "Pierre-Marie Dartus <dartus.pierremarie@gmail.com>",

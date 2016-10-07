@@ -123,11 +123,7 @@ class Sandbox {
       .then(() => this._createContainer());
   }
 
-  run(config = {}) {
-    const {
-      timeout = 0,
-    } = config;
-
+  run() {
     return Promise.resolve(this._container)
       .then(container => (
         this._start(container)
