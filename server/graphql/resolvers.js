@@ -42,6 +42,7 @@ module.exports = {
   Run: {
     logs: ({ sandbox_id: sandboxId }, _, { SandboxManager }) => SandboxManager.getLogs(sandboxId),
     status: ({ status }) => status,
+    createDate: ({ created_at: createDate }) => createDate,
     duration: ({ duration, created_at: createdAt }) => (
       duration != null ? duration : new Date() - createdAt
     ),
@@ -55,7 +56,11 @@ module.exports = {
   },
 
   Query: {
+    scripts: (_, { limit, offset }, { Scripts }) => Scripts.list(limit, offset || 0),
     script: (_, { id }, { Scripts }) => Scripts.fetchById(id),
+
+    runs: (_, { limit, offset }, { Runs }) => Runs.list(limit, offset || 0),
+    run: (_, { id }, { Runs }) => Runs.fetchById(id),
   },
 
   Mutation: {

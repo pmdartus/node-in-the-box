@@ -17,12 +17,17 @@ type Run {
   id: ID!
   script: Script!
   status: RunStatus!
+  createDate: String!
   duration: Int!
   logs: [String!]
 }
 
 type Query {
+  scripts(limit: Int!, offset: Int): [Script]
   script(id: ID!): Script
+
+  runs(limit: Int!, offset: Int): [Run]
+  run(id: ID!): Run
 }
 
 type Mutation {

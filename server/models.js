@@ -1,6 +1,12 @@
 const knex = require('./connector');
 
 const Runs = {
+  list(limit, offset) {
+    return knex('runs')
+      .limit(limit)
+      .offset(offset);
+  },
+
   fetchById(id) {
     return knex('runs')
       .where({ id })
@@ -32,6 +38,12 @@ const Runs = {
 };
 
 const Scripts = {
+  list(limit, offset) {
+    return knex('scripts')
+      .limit(limit)
+      .offset(offset);
+  },
+
   fetchById(id) {
     return knex('scripts')
       .where({ id })
