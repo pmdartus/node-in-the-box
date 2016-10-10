@@ -9,6 +9,7 @@ const cors = require('cors');
 const { Scripts, Runs } = require('./models');
 const { schema } = require('./graphql');
 const SandboxManager = require('./sandbox/manager');
+const { attachDebugListener } = require('./sandbox/helpers');
 const {
   port: PORT,
   dockerConfig,
@@ -35,7 +36,9 @@ sandboxManager.init(dockerConfig)
   .then(() => {
     app.listen(PORT, () => console.log(`Ready on port ${PORT}`));
 
-    const sandbox = sandboxManager.createSandboxe('setTimeout(() => console.log(\'bob\'), 1000)');
+    const sandbox = sandboxManager.createSandboxe('setTimeout(() => { console.log(\'bob\'); throw new Error() }, 1000)');
+    attachDebugListener(sandbox);
+
     return sandboxManager.run(sandbox, {})
       .then(() => console.log('done'))
       .catch(err => console.error('WADADAWDWAD', err));

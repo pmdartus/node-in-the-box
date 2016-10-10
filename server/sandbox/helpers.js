@@ -118,6 +118,27 @@ function waitContainer(container: any): Promise<> {
   ));
 }
 
+/**
+ * Attach logger and state update to a sandbox and print info to stdout
+ */
+function attachDebugListener(sandbox: Sandbox) {
+  let logBuffer = `[${sandbox.id} - Log]`;
+  sandbox.subsribe('log', ({ payload }) => {
+    const msg = payload.msg;
+
+    logBuffer += msg;
+    if (msg.includes('\n')) {      
+      process.stdout.write(logBuffer)
+      logBuffer = `[${sandbox.id} - Log]`;
+    }
+  });
+
+  sandbox.subsribe('stateChange', ({ payload }) => {
+    const { state, oldState } = payload;
+    console.log(`[${sandbox.id} - StateUpdate] ${oldState} ==> ${state}`);
+  });
+}
+
 module.exports = {
   createTmpSandboxDirectory,
   createTmpContainer,
@@ -126,4 +147,6 @@ module.exports = {
   startContainer,
   waitContainer,
   stopContainer,
+
+  attachDebugListener,
 };

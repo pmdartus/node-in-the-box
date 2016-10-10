@@ -14,7 +14,7 @@ const {
   startContainer,
   waitContainer,
   stopContainer,
-} = require('./execution-helpers');
+} = require('./helpers');
 
 type RunConfig = {
   timeout?: number
@@ -22,6 +22,7 @@ type RunConfig = {
 
 function runContainer(
   container: any,
+  sandbox: Sandbox,
   token: CancellationToken,
 ): Promise<> {
   if (token.isCanceled()) {
@@ -33,9 +34,11 @@ function runContainer(
     stdout: true,
     stderr: true,
     timestamps: true,
-  }, (err, stream) => {
-    stream.pipe(process.stdout);
-  }); 
+  }, (err, stream) => (
+    stream.on('data', (data) => (
+      sandbox.log(new Date().toUTCString(), data.toString())
+    ))
+  )); 
 
   return startContainer(container).then(() => {
     const cancel = new Promise(resolve => token.subscribe(resolve));
@@ -68,8 +71,8 @@ function runSandbox(
 
   const runPromise = createTmpSandboxDirectory(sandbox, () => (
     createTmpContainer(sandbox, docker, container => {
-      sandbox.state = 'RUNNING';
-      return runContainer(container, token)
+      sandbox.setState('RUNNING');
+      return runContainer(container, sandbox, token)
     }, token)
   ), token);
 
@@ -82,9 +85,9 @@ function runSandbox(
 
       sandbox.duration = new Date() - start;
       if (token.isCanceled() || failure) {
-        sandbox.state = 'FAILED';
+        sandbox.setState('FAILED');
       } else {
-        sandbox.state = 'SUCCESS';
+        sandbox.setState('SUCCESS');
       }
     });
 }

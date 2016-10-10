@@ -1,12 +1,22 @@
 // @flow
 
 const path = require('path');
+const EventEmitter = require('events');
 
 type State =
   | 'PENDING'
   | 'RUNNING'
   | 'SUCCESS'
   | 'FAILED';
+
+type EventName = 
+  | 'stateChange'
+  | 'log'
+
+type LogEntry = {
+  ts: string,
+  msg: string,
+}
 
 const CODE_FILE_NAME = 'index.js';
 
@@ -17,6 +27,8 @@ class Sandbox {
   state: State
   startTs: ?Date
   duration: ?number
+  logEntries: LogEntry[]
+  _eventEmitter: EventEmitter
 
   constructor(
     id: string,
@@ -30,6 +42,28 @@ class Sandbox {
     this.state = 'PENDING';
     this.startTs = null;
     this.duration = 0;
+    this.logEntries = [];
+    this._eventEmitter = new EventEmitter();
+  }
+
+  setState(state: State) {
+    const oldState = this.state;
+    this.state = state;
+
+    this._emit('stateChange', {
+      state,
+      oldState,
+    });
+  }
+
+  log(ts: string, msg: string) {
+    const payload = {
+      ts,
+      msg,
+    };
+
+    this.logEntries.push(payload);
+    this._emit('log', payload);
   }
 
   getCodePath(): string {
@@ -49,6 +83,19 @@ class Sandbox {
         Binds: [`${this.getCodePath()}/:/${CODE_FILE_NAME}`],
       },
     };
+  }
+
+  _emit(eventName: EventName, payload: Object) {
+    this._eventEmitter.emit(eventName, {
+      payload
+    });
+  }
+
+  subsribe(
+    eventName: EventName, 
+    listener: (payload: Object) => any,
+  ) {
+    this._eventEmitter.addListener(eventName, listener);
   }
 }
 
