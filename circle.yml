@@ -7,3 +7,4 @@ machine:
 dependencies:
   override:
     - docker pull node:6; sleep 10
+    - npm install
