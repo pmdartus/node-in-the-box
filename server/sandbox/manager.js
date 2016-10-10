@@ -58,7 +58,7 @@ function runContainer(
 function runSandbox(
   sandbox: Sandbox,
   docker: any,
-  runConfig: RunConfig,
+  runConfig: RunConfig = {},
 ): Promise<> {
   const {
     timeout = 30 * 1000,

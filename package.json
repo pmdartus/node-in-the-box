@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server",
     "dev": "nodemon server --ignore sandboxes --exec babel-node",
-    "test": "npm run lint",
+    "test-only": "jest",
+    "test": "npm run lint && npm run test-only",
     "lint": "eslint server/",
     "migrate": "knex migrate:latest --knexfile=./db/knexfile.js"
   },
@@ -36,6 +37,10 @@
     "eslint-config-airbnb-base": "^8.0.0",
     "eslint-plugin-flowtype": "^2.20.0",
     "eslint-plugin-import": "^1.16.0",
-    "flow-bin": "^0.33.0"
+    "flow-bin": "^0.33.0",
+    "jest": "^16.0.1"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }

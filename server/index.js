@@ -10,14 +10,14 @@ const { schema } = require('./graphql');
 const SandboxManager = require('./sandbox/manager');
 const { attachDebugListener } = require('./sandbox/helpers');
 const {
-  port: PORT,
+  PORT,
+  SANBOXES_FOLDER,
   dockerConfig,
-  sandboxesFolder,
 } = require('./config');
 
 const app = express();
 
-const sandboxManager = new SandboxManager(sandboxesFolder);
+const sandboxManager = new SandboxManager(SANBOXES_FOLDER);
 
 app.use(cors());
 app.use('/graphql', bodyParser.json(), apolloExpress({

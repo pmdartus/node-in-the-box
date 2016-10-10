@@ -1,3 +1,5 @@
+// @flow
+
 const fs = require('fs');
 const path = require('path');
 
@@ -17,7 +19,7 @@ const dockerConfig = {
 };
 
 module.exports = {
-  port: process.env.PORT || 3000,
-  sandboxesFolder: process.env.SANBOXES_FOLDER || path.resolve(__dirname, '../sandboxes'),
+  PORT: process.env.PORT || 3000,
+  SANBOXES_FOLDER: process.env.SANBOXES_FOLDER || path.resolve(__dirname, '../sandboxes'),
   dockerConfig,
 };

@@ -1,7 +1,10 @@
+# Node related
 node_modules
-.DS_Store
 npm-debug.log
 
-sandboxes
-public/js
+# Sandbox related
+sandboxes*/
 **/*.sqlite3
+
+# Misc
+.DS_Store

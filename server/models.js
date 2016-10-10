@@ -1,5 +1,5 @@
 // @flow
-
+/* global $Shape */
 const knex = require('./connector');
 
 export type Status =
@@ -18,17 +18,25 @@ export type Script = {
   runs?: Run[],
 }
 
+function list(table: string, limit: number, offset: number) {
+  return knex(table)
+    .limit(limit)
+    .offset(offset);
+}
+
+function getById(table: string, id: number) {
+  return knex(table)
+    .where({ id })
+    .fiest();
+}
+
 const Runs = {
   list(limit: number, offset: number): Promise<Run[]> {
-    return knex('runs')
-      .limit(limit)
-      .offset(offset);
+    return list('runs', limit, offset);
   },
 
   fetchById(id: number): Promise<Run> {
-    return knex('runs')
-      .where({ id })
-      .then(([run]) => run);
+    return getById('runs', id);
   },
 
   insertRun(
@@ -61,15 +69,11 @@ const Runs = {
 
 const Scripts = {
   list(limit : number, offset : number) : Promise<Script[]> {
-    return knex('scripts')
-      .limit(limit)
-      .offset(offset);
+    return list('scripts', limit, offset);
   },
 
-  fetchById(id: string): Promise<Script> {
-    return knex('scripts')
-      .where({ id })
-      .then(([script]) => script);
+  fetchById(id: number): Promise<Script> {
+    return getById('scripts', id);
   },
 
   insertContent(content: string): Promise<Script> {
