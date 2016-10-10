@@ -20,6 +20,9 @@ type LogEntry = {
 
 const CODE_FILE_NAME = 'index.js';
 
+/**
+ * Represent a sandbox for safelly evalutate user's code
+ */
 class Sandbox {
   id: string
   content: string
@@ -46,6 +49,7 @@ class Sandbox {
     this._eventEmitter = new EventEmitter();
   }
 
+  // Update the state of the sandbox and emit the update
   setState(state: State) {
     const oldState = this.state;
     this.state = state;
@@ -56,6 +60,7 @@ class Sandbox {
     });
   }
 
+  // Add a log and emit the logged data
   log(ts: string, msg: string) {
     const payload = {
       ts,
@@ -66,10 +71,12 @@ class Sandbox {
     this._emit('log', payload);
   }
 
+  // Get the user code path in the file system
   getCodePath(): string {
     return path.resolve(this.sandboxPath, CODE_FILE_NAME);
   }
 
+  // Get sandboxes container configuration
   getContainerConfig(): Object {
     return {
       Image: 'node:6',
@@ -85,12 +92,14 @@ class Sandbox {
     };
   }
 
+  // Emit a new event
   _emit(eventName: EventName, payload: Object) {
     this._eventEmitter.emit(eventName, {
       payload
     });
   }
 
+  // Subcribe a listener to specific topic
   subsribe(
     eventName: EventName, 
     listener: (payload: Object) => any,
