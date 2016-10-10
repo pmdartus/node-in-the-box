@@ -5,6 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server",
+    "dev": "nodemon server --ignore sandboxes --exec babel-node",
     "test": "npm run lint",
     "lint": "eslint server/",
     "migrate": "knex migrate:latest --knexfile=./db/knexfile.js"
@@ -17,6 +18,7 @@
     "cors": "^2.8.1",
     "dockerode": "^2.3.1",
     "express": "^4.14.0",
+    "fs-promise": "^0.5.0",
     "graphql": "^0.7.1",
     "graphql-subscriptions": "^0.1.5",
     "graphql-tools": "^0.7.2",
@@ -26,9 +28,13 @@
     "sqlite3": "^3.1.4"
   },
   "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-eslint": "^7.0.0",
     "eslint": "^3.7.0",
     "eslint-config-airbnb": "^12.0.0",
     "eslint-config-airbnb-base": "^8.0.0",
-    "eslint-plugin-import": "^1.16.0"
+    "eslint-plugin-flowtype": "^2.20.0",
+    "eslint-plugin-import": "^1.16.0",
+    "flow-bin": "^0.33.0"
   }
 }

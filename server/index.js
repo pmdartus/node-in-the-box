@@ -1,3 +1,5 @@
+// @flow
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const { apolloExpress, graphiqlExpress } = require('apollo-server');
@@ -6,7 +8,7 @@ const cors = require('cors');
 
 const { Scripts, Runs } = require('./models');
 const { schema } = require('./graphql');
-const SandboxManager = require('./sandbox-manager');
+const SandboxManager = require('./sandbox/manager');
 const {
   port: PORT,
   dockerConfig,
@@ -15,8 +17,7 @@ const {
 
 const app = express();
 
-const pubsub = new PubSub();
-const sandboxManager = new SandboxManager(dockerConfig, sandboxesFolder, pubsub);
+const sandboxManager = new SandboxManager(sandboxesFolder);
 
 app.use(cors());
 app.use('/graphql', bodyParser.json(), apolloExpress({
@@ -25,12 +26,16 @@ app.use('/graphql', bodyParser.json(), apolloExpress({
     Scripts,
     Runs,
     SandboxManager: sandboxManager,
-    PubSub: pubsub,
   },
 }));
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 /* eslint no-console: 0 */
-sandboxManager.init()
-  .then(() => app.listen(PORT, () => console.log(`Ready on port ${PORT}`)))
+sandboxManager.init(dockerConfig)
+  .then(() => {
+    app.listen(PORT, () => console.log(`Ready on port ${PORT}`));
+
+    const sandbox = sandboxManager.createSandboxe('console.log(\'bob\')');
+    return sandboxManager.run(sandbox, { timeout: 1 });
+  })
   .catch(err => console.error(err));
