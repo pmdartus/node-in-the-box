@@ -35,7 +35,7 @@ function stopContainer(container: any): Promise<> {
       }
 
       return State.Running ?
-        container.stop(err => (err ? reject(err) : resolve())) :
+        container.stop(stopErr => (stopErr ? reject(stopErr) : resolve())) :
         resolve();
     })
   ));
@@ -51,7 +51,7 @@ function createTmpSandboxDirectory(
   token?: CancellationToken,
 ): Promise<> {
   if (token && token.isCanceled()) {
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   const cleanup = () => fs.remove(sandbox.sandboxPath);
@@ -75,7 +75,7 @@ function createTmpContainer(
   token?: CancellationToken,
 ): Promise<> {
   if (token && token.isCanceled()) {
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   return createContainer(sandbox.getContainerConfig(), docker).then(container => (
@@ -122,15 +122,8 @@ function waitContainer(container: any): Promise<> {
  * Attach logger and state update to a sandbox and print info to stdout
  */
 function attachDebugListener(sandbox: Sandbox) {
-  let logBuffer = `[${sandbox.id} - Log]`;
   sandbox.subsribe('log', ({ payload }) => {
-    const msg = payload.msg;
-
-    logBuffer += msg;
-    if (msg.includes('\n')) {      
-      process.stdout.write(logBuffer)
-      logBuffer = `[${sandbox.id} - Log]`;
-    }
+    process.stdout.write(`[${sandbox.id} - Log] ${payload.msg}`);
   });
 
   sandbox.subsribe('stateChange', ({ payload }) => {

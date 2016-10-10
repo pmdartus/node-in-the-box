@@ -35,23 +35,23 @@ function runContainer(
     stderr: true,
     timestamps: true,
   }, (err, stream) => (
-    stream.on('data', (data) => (
+    stream.on('data', data => (
       sandbox.log(new Date().toUTCString(), data.toString())
     ))
-  )); 
+  ));
 
   return startContainer(container).then(() => {
     const cancel = new Promise(resolve => token.subscribe(resolve));
     const wait = waitContainer(container).then(({ StatusCode }) => (
       StatusCode === 0 ? Promise.resolve() : Promise.reject(`Exited with status code ${StatusCode}`)
     ));
- 
+
     return Promise.race([
       cancel,
       wait,
     ]).then(() => (
       stopContainer(container)
-    ))
+    ));
   });
 }
 
@@ -70,20 +70,22 @@ function runSandbox(
   ), timeout);
 
   const runPromise = createTmpSandboxDirectory(sandbox, () => (
-    createTmpContainer(sandbox, docker, container => {
+    createTmpContainer(sandbox, docker, (container) => {
       sandbox.setState('RUNNING');
-      return runContainer(container, sandbox, token)
+      return runContainer(container, sandbox, token);
     }, token)
   ), token);
 
-  const start = sandbox.startTs = new Date();
+  const start = new Date();
+  sandbox.setStartTs(start);
+
   let failure = null;
   return runPromise
     .catch(err => (failure = err))
     .then(() => {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
-      sandbox.duration = new Date() - start;
+      sandbox.setDuration(new Date() - start);
       if (token.isCanceled() || failure) {
         sandbox.setState('FAILED');
       } else {

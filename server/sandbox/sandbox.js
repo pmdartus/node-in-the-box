@@ -1,7 +1,7 @@
 // @flow
 
 const path = require('path');
-const EventEmitter = require('events');
+const { EventEmitter } = require('events');
 
 type State =
   | 'PENDING'
@@ -9,7 +9,7 @@ type State =
   | 'SUCCESS'
   | 'FAILED';
 
-type EventName = 
+type EventName =
   | 'stateChange'
   | 'log'
 
@@ -60,6 +60,16 @@ class Sandbox {
     });
   }
 
+  // Set the start timestamp
+  setStartTs(startTs: Date) {
+    this.startTs = startTs;
+  }
+
+  // Set the duration
+  setDuration(duration: number) {
+    this.duration = duration;
+  }
+
   // Add a log and emit the logged data
   log(ts: string, msg: string) {
     const payload = {
@@ -95,13 +105,13 @@ class Sandbox {
   // Emit a new event
   _emit(eventName: EventName, payload: Object) {
     this._eventEmitter.emit(eventName, {
-      payload
+      payload,
     });
   }
 
   // Subcribe a listener to specific topic
   subsribe(
-    eventName: EventName, 
+    eventName: EventName,
     listener: (payload: Object) => any,
   ) {
     this._eventEmitter.addListener(eventName, listener);

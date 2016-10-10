@@ -3,7 +3,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { apolloExpress, graphiqlExpress } = require('apollo-server');
-const { PubSub } = require('graphql-subscriptions');
 const cors = require('cors');
 
 const { Scripts, Runs } = require('./models');

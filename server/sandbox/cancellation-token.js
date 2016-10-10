@@ -28,7 +28,7 @@ class CancellationToken {
     this.reason = reason;
 
     process.nextTick(() => {
-      for (let subscriber of this._subscribers) {
+      for (const subscriber of this._subscribers) {
         subscriber.call(null, reason);
       }
     });
