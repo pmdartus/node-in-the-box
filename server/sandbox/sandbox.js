@@ -15,6 +15,8 @@ class Sandbox {
   content: string
   sandboxPath: string
   state: State
+  startTs: ?Date
+  duration: ?number
 
   constructor(
     id: string,
@@ -26,6 +28,8 @@ class Sandbox {
     this.sandboxPath = sandboxPath;
 
     this.state = 'PENDING';
+    this.startTs = null;
+    this.duration = 0;
   }
 
   getCodePath(): string {

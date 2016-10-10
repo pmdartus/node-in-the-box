@@ -35,7 +35,9 @@ sandboxManager.init(dockerConfig)
   .then(() => {
     app.listen(PORT, () => console.log(`Ready on port ${PORT}`));
 
-    const sandbox = sandboxManager.createSandboxe('console.log(\'bob\')');
-    return sandboxManager.run(sandbox, { timeout: 1 });
+    const sandbox = sandboxManager.createSandboxe('setTimeout(() => console.log(\'bob\'), 1000)');
+    return sandboxManager.run(sandbox, {})
+      .then(() => console.log('done'))
+      .catch(err => console.error('WADADAWDWAD', err));
   })
   .catch(err => console.error(err));

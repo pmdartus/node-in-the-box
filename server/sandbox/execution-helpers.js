@@ -2,7 +2,11 @@
 
 const fs = require('fs-promise');
 const Sandbox = require('./sandbox');
+const CancellationToken = require('./cancellation-token');
 
+/**
+ * Create a container based on a container config from the Remote API
+ */
 function createContainer(config: Object, docker: any): Promise<> {
   return new Promise((resolve, reject) => (
     docker.createContainer(config, (err, container) => (
@@ -11,9 +15,29 @@ function createContainer(config: Object, docker: any): Promise<> {
   ));
 }
 
+/**
+ * Remove a container
+ */
 function removeContainer(container: any): Promise<> {
   return new Promise((resolve, reject) => (
     container.remove(err => (err ? reject(err) : resolve()))
+  ));
+}
+
+/**
+ * Stop a container if it is running
+ */
+function stopContainer(container: any): Promise<> {
+  return new Promise((resolve, reject) => (
+    container.inspect((err, { State }) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return State.Running ?
+        container.stop(err => (err ? reject(err) : resolve())) :
+        resolve();
+    })
   ));
 }
 
@@ -24,12 +48,20 @@ function removeContainer(container: any): Promise<> {
 function createTmpSandboxDirectory(
   sandbox: Sandbox,
   childTask: () => Promise<>,
+  token?: CancellationToken,
 ): Promise<> {
+  if (token && token.isCanceled()) {
+    return Promise.resolve()
+  }
+
   const cleanup = () => fs.remove(sandbox.sandboxPath);
 
   return fs.outputFile(sandbox.getCodePath(), sandbox.content)
     .then(childTask)
-    .then(cleanup, cleanup);
+    .then(cleanup, err => (
+      cleanup()
+        .then(() => Promise.reject(err))
+    ));
 }
 
 /**
@@ -40,12 +72,20 @@ function createTmpContainer(
   sandbox: Sandbox,
   docker: any,
   childTask: (container: any) => Promise<>,
+  token?: CancellationToken,
 ): Promise<> {
+  if (token && token.isCanceled()) {
+    return Promise.resolve()
+  }
+
   return createContainer(sandbox.getContainerConfig(), docker).then(container => (
-    Promise.resolve(childTask(container))
+    childTask(container)
       .then(
         () => removeContainer(container),
-        () => removeContainer(container),
+        err => (
+          removeContainer(container)
+            .then(() => Promise.reject(err))
+        ),
       )
   ));
 }
@@ -74,7 +114,7 @@ function startContainer(container: any): Promise<> {
  */
 function waitContainer(container: any): Promise<> {
   return new Promise((resolve, reject) => (
-    container.wait(err => (err ? reject(err) : resolve()))
+    container.wait((err, res) => (err ? reject(err) : resolve(res)))
   ));
 }
 
@@ -85,4 +125,5 @@ module.exports = {
   ensureDockerConnection,
   startContainer,
   waitContainer,
+  stopContainer,
 };

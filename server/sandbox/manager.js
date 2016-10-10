@@ -13,6 +13,7 @@ const {
   ensureDockerConnection,
   startContainer,
   waitContainer,
+  stopContainer,
 } = require('./execution-helpers');
 
 type RunConfig = {
@@ -34,14 +35,21 @@ function runContainer(
     timestamps: true,
   }, (err, stream) => {
     stream.pipe(process.stdout);
-  });
+  }); 
 
-  return startContainer(container).then(() => (
-    Promise.race([
-      new Promise(resolve => token.subscribe(resolve)),
-      waitContainer(container),
-    ])
-  ));
+  return startContainer(container).then(() => {
+    const cancel = new Promise(resolve => token.subscribe(resolve));
+    const wait = waitContainer(container).then(({ StatusCode }) => (
+      StatusCode === 0 ? Promise.resolve() : Promise.reject(`Exited with status code ${StatusCode}`)
+    ));
+ 
+    return Promise.race([
+      cancel,
+      wait,
+    ]).then(() => (
+      stopContainer(container)
+    ))
+  });
 }
 
 function runSandbox(
@@ -59,15 +67,26 @@ function runSandbox(
   ), timeout);
 
   const runPromise = createTmpSandboxDirectory(sandbox, () => (
-      createTmpContainer(sandbox, docker,
-        container => runContainer(container, token)
-      )
-    )
-  );
+    createTmpContainer(sandbox, docker, container => {
+      sandbox.state = 'RUNNING';
+      return runContainer(container, token)
+    }, token)
+  ), token);
 
-  return runPromise.then(() => (
-    clearTimeout(timeoutId)
-  ));
+  const start = sandbox.startTs = new Date();
+  let failure = null;
+  return runPromise
+    .catch(err => (failure = err))
+    .then(() => {
+      clearTimeout(timeoutId)
+
+      sandbox.duration = new Date() - start;
+      if (token.isCanceled() || failure) {
+        sandbox.state = 'FAILED';
+      } else {
+        sandbox.state = 'SUCCESS';
+      }
+    });
 }
 
 class SandboxManager {
