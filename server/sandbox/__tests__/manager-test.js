@@ -49,11 +49,23 @@ describe('Execution', () => {
     runScript('return true;')
   ));
 
-  it('sets sandbox state and complementary info', () => (
+  it('sets sandbox set state and complementary info', () => (
     runScript('return true;').then((sandbox) => {
       expect(sandbox.state).toBe('SUCCESS');
       expect(sandbox.duration).toBeGreaterThan(0);
       expect(sandbox.startTs).not.toBeNull();
+    })
+  ));
+
+  it('sets sandbox set state to FAILED when the exit is different than 0', () => (
+    runScript('process.exit(1)').then((sandbox) => {
+      expect(sandbox.state).toBe('FAILED');
+    })
+  ));
+
+  it('sets sandbox set state to FAILED when an error is thrown', () => (
+    runScript('throw new Error("I failed")').then((sandbox) => {
+      expect(sandbox.state).toBe('FAILED');
     })
   ));
 });
