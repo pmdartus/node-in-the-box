@@ -58,14 +58,25 @@ describe('Execution', () => {
   ));
 
   it('sets sandbox set state to FAILED when the exit is different than 0', () => (
-    runScript('process.exit(1)').then((sandbox) => {
-      expect(sandbox.state).toBe('FAILED');
+    runScript('process.exit(1)').then(({ state }) => {
+      expect(state).toBe('FAILED');
     })
   ));
 
   it('sets sandbox set state to FAILED when an error is thrown', () => (
-    runScript('throw new Error("I failed")').then((sandbox) => {
-      expect(sandbox.state).toBe('FAILED');
+    runScript('throw new Error("I failed")').then(({ state }) => {
+      expect(state).toBe('FAILED');
+    })
+  ));
+
+  it('captures logs', () => (
+    runScript(`
+      console.log('Hello');
+      console.error('World');
+    `).then(({ logEntries }) => {
+      const logs = logEntries.map(({ msg }) => msg);
+      expect(logs.length).toBe(2);
+      expect(logs).toEqual(['Hello\r\n', 'World\r\n']);
     })
   ));
 });
