@@ -1,8 +1,12 @@
 // @flow
 
 const fs = require('fs-promise');
+
 const Sandbox = require('./sandbox');
 const CancellationToken = require('./cancellation-token');
+const {
+  DockerConnectionError,
+} = require('./errors');
 
 /**
  * Create a container based on a container config from the Remote API
@@ -95,7 +99,9 @@ function createTmpContainer(
  */
 function ensureDockerConnection(docker: any): Promise<> {
   return new Promise((resolve, reject) => (
-    docker.ping(err => (err ? reject(err) : resolve()))
+    docker.ping(err => (
+      err ? reject(new DockerConnectionError(err)) : resolve()
+    ))
   ));
 }
 

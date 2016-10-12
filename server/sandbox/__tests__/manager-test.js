@@ -3,6 +3,9 @@ const path = require('path');
 const Manager = require('../manager');
 const Sandbox = require('../sandbox');
 const config = require('../../config');
+const {
+  DockerConnectionError,
+} = require('../errors');
 
 const SANDBOXES_PATH = path.resolve(__dirname, '../../../sandboxes-test');
 
@@ -25,10 +28,17 @@ describe('Manager', () => {
     createManager()
   ));
 
-  it('creates and init a manager using docker config', () => (
-    createManager({})
-      .catch(err => expect(err).not.toBeNull)
-  ));
+  it('creates and init a manager using docker config', () => {
+    const fakeConfig = {
+      foo: 'bar',
+    };
+    const manager = new Manager(SANDBOXES_PATH);
+    return manager.init(fakeConfig)
+      .catch((err) => {
+        expect(err instanceof DockerConnectionError);
+        expect(err.response).not.toBeNull();
+      });
+  });
 
   it('thorws when creating a sandbox before init', () => {
     const manager = new Manager();
@@ -45,7 +55,7 @@ describe('Manager', () => {
 });
 
 describe('Execution', () => {
-  it('executes simple script error', () => (
+  it('executes simple script', () => (
     runScript('return true;')
   ));
 
