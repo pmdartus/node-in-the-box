@@ -60,7 +60,7 @@ describe('Execution', () => {
   ));
 
   it('sets sandbox set state and complementary info', () => (
-    runScript('return true;').then((sandbox) => {
+    runScript('process.exit(0)').then((sandbox) => {
       expect(sandbox.state).toBe('SUCCESS');
       expect(sandbox.duration).toBeGreaterThan(0);
       expect(sandbox.startTs).not.toBeNull();
