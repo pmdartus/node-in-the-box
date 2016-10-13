@@ -18,12 +18,18 @@ class ExtensibleError extends Error {
   }
 }
 
-class DockerConnectionError extends ExtensibleError {
+class DockerError extends ExtensibleError {
   response: Object
 
-  constructor(apiResponse: Object) {
-    super('Error while connecting to Docker API');
+  constructor(message: string, apiResponse: Object) {
+    super(message);
     this.response = apiResponse;
+  }
+}
+
+class DockerConnectionError extends DockerError {
+  constructor(apiResponse: Object) {
+    super('Error while connecting to Docker API', apiResponse);
   }
 }
 

@@ -9,6 +9,27 @@ const {
 } = require('./errors');
 
 /**
+ * Pull a container
+ */
+function pullContainer(containerName: string, docker: any) {
+  return new Promise((resolve, reject) => (
+    docker.pull(containerName, (err, stream) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return docker.modem.followProgress(stream, (processErr, res) => {
+        if (processErr) {
+          return reject(processErr);
+        }
+
+        return resolve(res);
+      });
+    })
+  ));
+}
+
+/**
  * Create a container based on a container config from the Remote API
  */
 function createContainer(config: Object, docker: any): Promise<> {
@@ -16,7 +37,17 @@ function createContainer(config: Object, docker: any): Promise<> {
     docker.createContainer(config, (err, container) => (
       err ? reject(err) : resolve(container)
     ))
-  ));
+  )).catch((err) => {
+    if (err.statusCode !== 404) {
+      throw err;
+    }
+
+    // Pull the container if not found
+    return pullContainer(config.Image, docker)
+    .then(() => (
+      createContainer(config, docker)
+    ));
+  });
 }
 
 /**

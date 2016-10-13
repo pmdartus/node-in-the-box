@@ -7,8 +7,9 @@
     "start": "node server",
     "dev": "nodemon server --ignore sandboxes --exec babel-node",
     "test-only": "jest",
-    "test": "npm run lint && npm run test-only",
+    "test": "npm run lint && npm run type && npm run test-only",
     "lint": "eslint server/",
+    "type": "flow; test $? -eq 0 -o $? -eq 2",
     "migrate": "knex migrate:latest --knexfile=./db/knexfile.js"
   },
   "author": "Pierre-Marie Dartus <dartus.pierremarie@gmail.com>",
@@ -41,6 +42,9 @@
     "jest": "^16.0.1"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/sandboxes-test"
+    ]
   }
 }
