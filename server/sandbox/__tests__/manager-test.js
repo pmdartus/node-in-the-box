@@ -100,4 +100,22 @@ describe('Execution', () => {
       expect(logs).toEqual(['Async work\r\n']);
     })
   ));
+
+  it('should be able to cancel a long living sandbox', () => (
+    createManager().then((manager) => {
+      const sandbox = manager.createSandboxe('setTimeout(() => console.log("Long work"), 10 * 1000)');
+      const waitRunEnd = manager.run(sandbox, {});
+
+      return new Promise(resolve => setTimeout(resolve, 3 * 1000)).then(() => (
+        manager.cancel(sandbox)
+      )).then(() => (
+        waitRunEnd
+      )).then(() => {
+        const { logEntries, duration, state } = sandbox;
+        expect(state).toBe('FAILED');
+        expect(duration).toBeGreaterThan(3 * 1000);
+        expect(logEntries.length).toBe(0);
+      });
+    })
+  ));
 });

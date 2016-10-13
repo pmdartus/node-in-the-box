@@ -59,12 +59,12 @@ function runSandbox(
   sandbox: Sandbox,
   docker: any,
   runConfig: RunConfig = {},
+  token: CancellationToken,
 ): Promise<> {
   const {
     timeout = 30 * 1000,
   } = runConfig;
 
-  const token = new CancellationToken();
   const timeoutId = setTimeout(() => (
     token.cancel(`Execution canceled: Not completed before ${(timeout / 1000).toFixed(0)}s.`)
   ), timeout);
@@ -98,12 +98,14 @@ class SandboxManager {
   sandboxesPath: string
   _isInit: boolean
   _docker: any
+  _sandboxCancelationMap: Map<Sandbox, CancellationToken>
 
   constructor(sandboxesPath: string) {
     this.sandboxesPath = sandboxesPath;
 
     this._docker = null;
     this._isInit = false;
+    this._sandboxCancelationMap = new Map();
   }
 
   init(dockerConfig: Object): Promise<> {
@@ -123,7 +125,27 @@ class SandboxManager {
   }
 
   run(sandbox: Sandbox, config: RunConfig): Promise<> {
-    return runSandbox(sandbox, this._docker, config);
+    // Create a cancelation token for the sandbox and register it in the map
+    const cancellation = new CancellationToken();
+    this._sandboxCancelationMap.set(sandbox, cancellation);
+
+    // Start the sandbox
+    return runSandbox(sandbox, this._docker, config, cancellation).then(() => (
+      this._sandboxCancelationMap.delete(sandbox)
+    ));
+  }
+
+  cancel(sandbox: Sandbox) {
+    // Check if the sandbox is registered
+    if (!this._sandboxCancelationMap.has(sandbox)) {
+      throw new Error(`Try to cancel a not running sandbox ${sandbox.id}`);
+    }
+
+    // Get token and cancel it if present
+    const cancelation = this._sandboxCancelationMap.get(sandbox);
+    if (cancelation != null && !cancelation.isCanceled()) {
+      cancelation.cancel();
+    }
   }
 }
 
