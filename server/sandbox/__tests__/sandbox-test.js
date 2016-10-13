@@ -1,3 +1,5 @@
+// @flow
+
 const Sandbox = require('../sandbox');
 
 describe('Sandbox', () => {

@@ -1,3 +1,5 @@
+// @flow
+
 const path = require('path');
 
 const Manager = require('../manager');
@@ -9,13 +11,13 @@ const {
 
 const SANDBOXES_PATH = path.resolve(__dirname, '../../../sandboxes-test');
 
-function createManager(dockerConfig = config.dockerConfig) {
+function createManager(dockerConfig = config.dockerConfig): Promise<Manager> {
   const manager = new Manager(SANDBOXES_PATH);
   return manager.init(dockerConfig)
     .then(() => manager);
 }
 
-function runScript(content, runConfig) {
+function runScript(content, runConfig = {}) {
   return createManager().then((manager) => {
     const sandbox = manager.createSandboxe(content);
     return manager.run(sandbox, runConfig)
@@ -41,9 +43,9 @@ describe('Manager', () => {
   });
 
   it('thorws when creating a sandbox before init', () => {
-    const manager = new Manager();
+    const manager = new Manager(SANDBOXES_PATH);
     return expect(() => manager.createSandboxe('return true;'))
-      .toThrowError(/init/);
+      .toThrowError('init');
   });
 
   it('creates sandbox return a new Sandbox instance', () => (
@@ -56,7 +58,7 @@ describe('Manager', () => {
 
 describe('Execution', () => {
   it('executes simple script', () => (
-    runScript('return true;')
+    runScript('process.exit(0)')
   ));
 
   it('sets sandbox set state and complementary info', () => (
@@ -87,6 +89,15 @@ describe('Execution', () => {
       const logs = logEntries.map(({ msg }) => msg);
       expect(logs.length).toBe(2);
       expect(logs).toEqual(['Hello\r\n', 'World\r\n']);
+    })
+  ));
+
+  it('should wait for an async script to finish', () => (
+    runScript('setTimeout(() => console.log("Async work"), 100)').then((sandbox) => {
+      const { logEntries, duration } = sandbox;
+      const logs = logEntries.map(({ msg }) => msg);
+      expect(duration).toBeGreaterThan(100);
+      expect(logs).toEqual(['Async work\r\n']);
     })
   ));
 });

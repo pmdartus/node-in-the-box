@@ -1,8 +1,8 @@
 // @flow
 
 const path = require('path');
-const uuid = require('node-uuid');
 const Docker = require('dockerode');
+const uuid = require('node-uuid');
 
 const Sandbox = require('./sandbox');
 const CancellationToken = require('./cancellation-token');
